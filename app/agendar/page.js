@@ -6,15 +6,9 @@ import '../globals.css';
 
 export default function Home() {
   const [step, setStep] = useState(1);
-  const [services, setServices] = useState([
-    { id: 1, name: 'Corte Degradê', price: 45, duration_minutes: 30, description: 'Corte na máquina e tesoura com acabamento impecável.' },
-    { id: 2, name: 'Barba Terapia', price: 35, duration_minutes: 30, description: 'Toalha quente, massagem e alinhamento dos fios.' },
-    { id: 3, name: 'Corte + Barba', price: 75, duration_minutes: 60, description: 'O pacote completo para o seu visual.' }
-  ]);
-  const [professionals, setProfessionals] = useState([
-    { id: 1, name: 'Paulo Silva' },
-    { id: 2, name: 'Ricardo Mendes' }
-  ]);
+  const [services, setServices] = useState([]);
+  const [professionals, setProfessionals] = useState([]);
+  const [isLoadingData, setIsLoadingData] = useState(true);
   
   const [selectedService, setSelectedService] = useState(null);
   const [selectedProfessional, setSelectedProfessional] = useState(null);
@@ -31,35 +25,15 @@ export default function Home() {
   const [availableTimes, setAvailableTimes] = useState([]);
 
   useEffect(() => {
-    // Buscar serviços e profissionais (simulado para a UI, chamará as APIs reais)
-    fetch('/api/services', { headers: { 'ngrok-skip-browser-warning': 'true' } }).then(res => res.json()).then(data => {
-      // Se não vier dados do BD, usa mock para mostrar o layout bonito
-      if (data && data.length > 0) setServices(data);
-      else setServices([
-        { id: 1, name: 'Corte Degradê', price: 45, duration_minutes: 30, description: 'Corte na máquina e tesoura com acabamento impecável.' },
-        { id: 2, name: 'Barba Terapia', price: 35, duration_minutes: 30, description: 'Toalha quente, massagem e alinhamento dos fios.' },
-        { id: 3, name: 'Corte + Barba', price: 75, duration_minutes: 60, description: 'O pacote completo para o seu visual.' }
-      ]);
-    }).catch(() => {
-      setServices([
-        { id: 1, name: 'Corte Degradê', price: 45, duration_minutes: 30, description: 'Corte na máquina e tesoura com acabamento impecável.' },
-        { id: 2, name: 'Barba Terapia', price: 35, duration_minutes: 30, description: 'Toalha quente, massagem e alinhamento dos fios.' },
-        { id: 3, name: 'Corte + Barba', price: 75, duration_minutes: 60, description: 'O pacote completo para o seu visual.' }
-      ]);
-    });
-
-    fetch('/api/professionals', { headers: { 'ngrok-skip-browser-warning': 'true' } }).then(res => res.json()).then(data => {
-      if (data && data.length > 0) setProfessionals(data);
-      else setProfessionals([
-        { id: 1, name: 'Paulo Silva' },
-        { id: 2, name: 'Ricardo Mendes' }
-      ]);
-    }).catch(() => {
-      setProfessionals([
-        { id: 1, name: 'Paulo Silva' },
-        { id: 2, name: 'Ricardo Mendes' }
-      ]);
-    });
+    // Buscar serviços e profissionais reais da API
+    Promise.all([
+      fetch('/api/services', { headers: { 'ngrok-skip-browser-warning': 'true' } }).then(res => res.json()),
+      fetch('/api/professionals', { headers: { 'ngrok-skip-browser-warning': 'true' } }).then(res => res.json())
+    ]).then(([servicesData, professionalsData]) => {
+      if (servicesData && servicesData.length > 0) setServices(servicesData);
+      if (professionalsData && professionalsData.length > 0) setProfessionals(professionalsData);
+    }).catch(console.error)
+      .finally(() => setIsLoadingData(false));
     
     // Fetch store status
     fetch('/api/settings/status', { headers: { 'ngrok-skip-browser-warning': 'true' } })
@@ -220,25 +194,34 @@ export default function Home() {
         {step === 1 && (
           <div className="step-container slide-in">
             <h2>1. Escolha o Serviço</h2>
-            <div className="options-grid">
-              {services.map(service => (
-                <div 
-                  key={service.id} 
-                  className={`option-card ${selectedService?.id === service.id ? 'selected' : ''}`}
-                  onClick={() => setSelectedService(service)}
-                >
-                  <div className="option-header">
-                    <h3>{service.name}</h3>
-                    <span className="price">R$ {service.price.toFixed(2)}</span>
+            {isLoadingData ? (
+              <div className="flex-center" style={{ padding: '3rem 0', flexDirection: 'column', color: 'var(--muted)' }}>
+                <div style={{ animation: 'spin 1s linear infinite', border: '2px solid var(--primary)', borderTopColor: 'transparent', borderRadius: '50%', width: '32px', height: '32px' }} />
+                <p>Carregando serviços...</p>
+              </div>
+            ) : (
+              <div className="options-grid">
+                {services.length === 0 ? (
+                  <p style={{ textAlign: 'center', color: 'var(--muted)', padding: '2rem 0' }}>Nenhum serviço disponível no momento.</p>
+                ) : services.map(service => (
+                  <div 
+                    key={service.id} 
+                    className={`option-card ${selectedService?.id === service.id ? 'selected' : ''}`}
+                    onClick={() => setSelectedService(service)}
+                  >
+                    <div className="option-header">
+                      <h3>{service.name}</h3>
+                      <span className="price">R$ {service.price.toFixed(2)}</span>
+                    </div>
+                    <p className="description">{service.description}</p>
+                    <div className="duration">
+                      <Clock size={14} /> {service.duration_minutes} min
+                    </div>
                   </div>
-                  <p className="description">{service.description}</p>
-                  <div className="duration">
-                    <Clock size={14} /> {service.duration_minutes} min
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button className="btn-primary w-full mt-4" onClick={handleNextStep} style={{ opacity: selectedService ? 1 : 0.5 }}>
+                ))}
+              </div>
+            )}
+            <button className="btn-primary w-full mt-4" onClick={handleNextStep} style={{ opacity: selectedService ? 1 : 0.5 }} disabled={isLoadingData || !selectedService}>
               Continuar <ChevronRight size={20} />
             </button>
           </div>
@@ -248,21 +231,30 @@ export default function Home() {
         {step === 2 && (
           <div className="step-container slide-in">
             <h2>2. Escolha o Profissional</h2>
-            <div className="options-grid">
-              {professionals.map(prof => (
-                <div 
-                  key={prof.id} 
-                  className={`option-card flex-center ${selectedProfessional?.id === prof.id ? 'selected' : ''}`}
-                  onClick={() => setSelectedProfessional(prof)}
-                >
-                  <div className="avatar">
-                    <User size={32} />
+            {isLoadingData ? (
+              <div className="flex-center" style={{ padding: '3rem 0', flexDirection: 'column', color: 'var(--muted)' }}>
+                <div style={{ animation: 'spin 1s linear infinite', border: '2px solid var(--primary)', borderTopColor: 'transparent', borderRadius: '50%', width: '32px', height: '32px' }} />
+                <p>Carregando profissionais...</p>
+              </div>
+            ) : (
+              <div className="options-grid">
+                {professionals.length === 0 ? (
+                  <p style={{ textAlign: 'center', color: 'var(--muted)', padding: '2rem 0' }}>Nenhum profissional disponível no momento.</p>
+                ) : professionals.map(prof => (
+                  <div 
+                    key={prof.id} 
+                    className={`option-card flex-center ${selectedProfessional?.id === prof.id ? 'selected' : ''}`}
+                    onClick={() => setSelectedProfessional(prof)}
+                  >
+                    <div className="avatar">
+                      <User size={32} />
+                    </div>
+                    <h3>{prof.name}</h3>
                   </div>
-                  <h3>{prof.name}</h3>
-                </div>
-              ))}
-            </div>
-            <button className="btn-primary w-full mt-4" onClick={handleNextStep} style={{ opacity: selectedProfessional ? 1 : 0.5 }}>
+                ))}
+              </div>
+            )}
+            <button className="btn-primary w-full mt-4" onClick={handleNextStep} style={{ opacity: selectedProfessional ? 1 : 0.5 }} disabled={isLoadingData || !selectedProfessional}>
               Continuar <ChevronRight size={20} />
             </button>
           </div>
