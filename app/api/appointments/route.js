@@ -58,7 +58,7 @@ export async function POST(request) {
     
     // 2. Verificar se o horário já está ocupado
     const existingAppointment = await db.get(
-      'SELECT id FROM appointments WHERE professional_id = ? AND appointment_date = ? AND appointment_time = ? AND status != "cancelled"',
+      "SELECT id FROM appointments WHERE professional_id = ? AND appointment_date = ? AND appointment_time = ? AND status != 'cancelled'",
       [professionalId, date, time]
     );
     
@@ -75,6 +75,6 @@ export async function POST(request) {
     return NextResponse.json({ success: true, appointmentId: appointmentResult.lastID, isExistingClient: !!existingClient });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: 'Erro ao criar agendamento' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Erro ao criar agendamento', stack: error.stack }, { status: 500 });
   }
 }
