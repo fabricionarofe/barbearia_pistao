@@ -67,30 +67,6 @@ export default function LandingPage() {
           Agendar Horário
         </Link>
       </div>
-
-      {/* FAB - Floating Action Button */}
-      <div className="fab-container" style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 50 }}>
-        {showFab && (
-          <div className="fab-menu" style={{ position: 'absolute', bottom: '60px', right: '0', display: 'flex', flexDirection: 'column', gap: '10px', backgroundColor: 'var(--card-bg)', padding: '1rem', borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', border: '1px solid var(--card-border)', width: '200px' }}>
-            <Link href="/agendar" className="fab-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'white', textDecoration: 'none', padding: '0.5rem', borderRadius: '8px', transition: 'background-color 0.2s' }}>
-              <Calendar size={18} color="var(--primary)" />
-              <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>Agendar Horário</span>
-            </Link>
-            <div style={{ height: '1px', backgroundColor: 'var(--card-border)', margin: '0.25rem 0' }} />
-            <Link href="/admin" className="fab-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'white', textDecoration: 'none', padding: '0.5rem', borderRadius: '8px', transition: 'background-color 0.2s' }}>
-              <Settings size={18} color="var(--muted)" />
-              <span style={{ fontSize: '0.9rem', fontWeight: '500', color: 'var(--muted)' }}>Painel Admin</span>
-            </Link>
-          </div>
-        )}
-        <button 
-          className="fab-button"
-          onClick={() => setShowFab(!showFab)}
-          style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'var(--primary)', color: 'black', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(220, 165, 70, 0.4)', transition: 'transform 0.2s' }}
-        >
-          <MoreVertical size={24} />
-        </button>
-      </div>
     </div>
   );
 }

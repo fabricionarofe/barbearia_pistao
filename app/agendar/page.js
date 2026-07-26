@@ -407,21 +407,7 @@ export default function Home() {
         )}
       </main>
 
-      <div className="fab-container">
-        {showFab && (
-          <div className="fab-menu">
-            <button onClick={() => { setStep(1); setShowFab(false); }} className="fab-item">
-              Agendar horário
-            </button>
-            <a href="/admin" className="fab-item">
-              Painel Admin
-            </a>
-          </div>
-        )}
-        <button className="fab-main" onClick={() => setShowFab(!showFab)}>
-          <Menu size={24} />
-        </button>
-      </div>
+
     </div>
   );
 }
