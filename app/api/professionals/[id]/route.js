@@ -3,7 +3,7 @@ import { openDb } from '../../../../lib/db';
 
 export async function PUT(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const { name, phone } = await request.json();
     const db = await openDb();
     
@@ -20,7 +20,7 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const db = await openDb();
     
     // Usamos soft delete para não quebrar agendamentos passados

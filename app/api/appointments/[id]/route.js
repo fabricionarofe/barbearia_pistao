@@ -3,7 +3,7 @@ import { openDb } from '../../../../lib/db';
 
 export async function PUT(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const { status } = await request.json();
     
     // Status válidos: pending, confirmed, completed, cancelled
