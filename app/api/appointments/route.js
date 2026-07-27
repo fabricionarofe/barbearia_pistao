@@ -69,7 +69,7 @@ export async function POST(request) {
     // 3. Criar o agendamento
     const appointmentResult = await db.run(
       'INSERT INTO appointments (client_id, professional_id, service_id, appointment_date, appointment_time, status) VALUES (?, ?, ?, ?, ?, ?)',
-      [clientId, professionalId, serviceId, date, time, 'confirmed']
+      [clientId, professionalId, serviceId, date, time, 'pending']
     );
     
     return NextResponse.json({ success: true, appointmentId: appointmentResult.lastID, isExistingClient: !!existingClient });

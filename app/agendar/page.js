@@ -52,6 +52,20 @@ export default function Home() {
     }));
   }, []);
 
+  const getServiceImage = (name) => {
+    if (!name) return null;
+    const n = name.toLowerCase();
+    if (n.includes('americano')) return '/img/americano.jpeg';
+    if (n.includes('barba')) return '/img/barba.jpeg';
+    if (n.includes('degrade') || n.includes('degradê')) return '/img/degrade na 0.jpeg';
+    if (n.includes('luzes')) return '/img/luzes.jpeg';
+    if (n.includes('moicano')) return '/img/moicano.jpeg';
+    if (n.includes('nevou')) return '/img/nevou.jpeg';
+    if (n.includes('pigment')) return '/img/pigmentação.jpeg';
+    if (n.includes('sobrancelha')) return '/img/sobrancelha.jpeg';
+    return null;
+  };
+
   // Gerar horários dinamicamente baseado na data e se está aberta
   useEffect(() => {
     if (!selectedDate) return;
@@ -213,7 +227,7 @@ export default function Home() {
                     {/* Imagem do Serviço */}
                     <div style={{ width: '80px', height: '80px', flexShrink: 0, borderRadius: '8px', overflow: 'hidden', backgroundColor: 'var(--card-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <img 
-                        src={`/img/${service.name.toLowerCase().trim()}.jpeg`} 
+                        src={getServiceImage(service.name) || '/img/logo.jpeg'} 
                         alt={service.name}
                         onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
