@@ -37,7 +37,16 @@ export default function LandingPage() {
           justifyContent: 'center',
           boxShadow: '0 10px 30px rgba(220, 165, 70, 0.3)'
         }}>
-          <Scissors size={48} color="#000" />
+          <img 
+            src="/img/logo.jpeg" 
+            alt="Logo Barbearia" 
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              borderRadius: '50%', 
+              objectFit: 'cover' 
+            }} 
+          />
         </div>
         
         <h1 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '1rem', letterSpacing: '-1px' }}>Barbearia do Paulo</h1>

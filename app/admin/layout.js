@@ -27,8 +27,8 @@ export default function AdminLayout({ children }) {
       {/* Mobile Header / Hamburger */}
       <div className="mobile-admin-header">
         <div className="logo-text" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div className="logo-icon" style={{ width: '32px', height: '32px' }}>
-            <Scissors size={18} />
+          <div className="logo-icon" style={{ width: '32px', height: '32px', background: 'transparent', padding: 0, overflow: 'hidden' }}>
+            <img src="/img/logo.jpeg" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }} />
           </div>
           <h2 style={{ fontSize: '1rem', margin: 0 }}>Barbearia</h2>
         </div>
@@ -44,8 +44,8 @@ export default function AdminLayout({ children }) {
 
       <aside className={`sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <div className="logo-icon">
-            <Scissors size={24} />
+          <div className="logo-icon" style={{ background: 'transparent', padding: 0, overflow: 'hidden' }}>
+            <img src="/img/logo.jpeg" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
           </div>
           <div className="logo-text">
             <h2>Barbearia</h2>

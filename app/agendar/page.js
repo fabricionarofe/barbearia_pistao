@@ -174,8 +174,8 @@ export default function Home() {
   return (
     <div className="client-container">
       <header className="client-header">
-        <div className="logo-icon large">
-          <Scissors size={32} />
+        <div className="logo-icon large" style={{ background: 'transparent', padding: 0, overflow: 'hidden' }}>
+          <img src="/img/logo.jpeg" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '12px' }} />
         </div>
         <div>
           <h1>Barbearia do Paulo</h1>
@@ -208,14 +208,31 @@ export default function Home() {
                     key={service.id} 
                     className={`option-card ${selectedService?.id === service.id ? 'selected' : ''}`}
                     onClick={() => setSelectedService(service)}
+                    style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}
                   >
-                    <div className="option-header">
-                      <h3>{service.name}</h3>
-                      <span className="price">R$ {service.price.toFixed(2)}</span>
+                    {/* Imagem do Serviço */}
+                    <div style={{ width: '80px', height: '80px', flexShrink: 0, borderRadius: '8px', overflow: 'hidden', backgroundColor: 'var(--card-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <img 
+                        src={`/img/${service.name.toLowerCase().trim()}.jpeg`} 
+                        alt={service.name}
+                        onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                      <div style={{ display: 'none', color: 'var(--muted)' }}>
+                        <Scissors size={24} />
+                      </div>
                     </div>
-                    <p className="description">{service.description}</p>
-                    <div className="duration">
-                      <Clock size={14} /> {service.duration_minutes} min
+                    
+                    {/* Detalhes do Serviço */}
+                    <div style={{ flex: 1 }}>
+                      <div className="option-header">
+                        <h3>{service.name}</h3>
+                        <span className="price">R$ {service.price.toFixed(2)}</span>
+                      </div>
+                      <p className="description">{service.description}</p>
+                      <div className="duration">
+                        <Clock size={14} /> {service.duration_minutes} min
+                      </div>
                     </div>
                   </div>
                 ))}
