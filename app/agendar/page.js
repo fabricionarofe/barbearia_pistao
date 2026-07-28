@@ -333,8 +333,8 @@ export default function Home() {
             
             {selectedDate && storeStatus === 'lunch_break' && isToday && (
               <div className="mt-4" style={{ textAlign: 'center', padding: '1rem', backgroundColor: 'var(--card-bg)', border: '1px solid #eab308', borderRadius: '12px' }}>
-                <p style={{ color: '#eab308', fontWeight: 'bold' }}>Estamos em pausa para o almoço.</p>
-                <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: '0.5rem' }}>Retornaremos e os horários estarão disponíveis a partir das <strong>{returnTime}</strong>.</p>
+                <p style={{ color: '#eab308', fontWeight: 'bold' }}>Estamos fechados para o almoço no momento.</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: '0.5rem' }}>Mas você já pode garantir a sua vaga! Os horários disponíveis para o restante do dia estão logo abaixo para você agendar.</p>
               </div>
             )}
             
