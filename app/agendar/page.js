@@ -104,6 +104,11 @@ export default function Home() {
     }
 
     for (let h = 9; h <= 20; h++) {
+      // Bloquear horários de almoço (12:00 até 14:30)
+      if (h >= 12 && h < 15) {
+        continue;
+      }
+      
       const t1 = `${h.toString().padStart(2, '0')}:00`;
       const t2 = `${h.toString().padStart(2, '0')}:30`;
       
