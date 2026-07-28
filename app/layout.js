@@ -12,8 +12,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "BarberHub - Sistema de Gestão para Barbearias",
-  description: "Sistema completo de gestão para barbearias modernas",
+  title: "Barbearia do Paulo",
+  description: "Agende seu horário com praticidade e exclusividade",
+  icons: {
+    icon: '/img/logo.jpeg',
+  },
 };
 
 export default function RootLayout({ children }) {
