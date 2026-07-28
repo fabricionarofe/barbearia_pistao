@@ -55,14 +55,18 @@ export default function Home() {
   const getServiceImage = (name) => {
     if (!name) return null;
     const n = name.toLowerCase();
+    
+    // Mais específicos primeiro para evitar conflitos (ex: "moicano" vs "degrade")
+    if (n.includes('moicano') && (n.includes('degrade') || n.includes('degradê'))) return '/img/moicano degradê.jpeg';
+    if (n.includes('moicano')) return '/img/moicano.jpeg';
     if (n.includes('americano')) return '/img/americano.jpeg';
     if (n.includes('barba')) return '/img/barba.jpeg';
     if (n.includes('degrade') || n.includes('degradê')) return '/img/degrade na 0.jpeg';
     if (n.includes('luzes')) return '/img/luzes.jpeg';
-    if (n.includes('moicano')) return '/img/moicano.jpeg';
     if (n.includes('nevou')) return '/img/nevou.jpeg';
     if (n.includes('pigment')) return '/img/pigmentação.jpeg';
     if (n.includes('sobrancelha')) return '/img/sobrancelha.jpeg';
+    
     return null;
   };
 
