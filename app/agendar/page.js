@@ -10,7 +10,7 @@ export default function Home() {
   const [professionals, setProfessionals] = useState([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   
-  const [selectedService, setSelectedService] = useState(null);
+  const [selectedServices, setSelectedServices] = useState([]);
   const [selectedProfessional, setSelectedProfessional] = useState(null);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
@@ -148,13 +148,23 @@ export default function Home() {
   }, [selectedDate, selectedProfessional]);
 
   const handleNextStep = () => {
-    if (step === 1 && !selectedService) return alert('Selecione um serviço!');
+    if (step === 1 && selectedServices.length === 0) return alert('Selecione um ou mais serviços!');
     if (step === 2 && !selectedProfessional) return alert('Selecione um profissional!');
     if (step === 3 && (!selectedDate || !selectedTime)) return alert('Selecione data e horário!');
     setStep(step + 1);
   };
 
   const handlePrevStep = () => setStep(step - 1);
+
+  const toggleService = (service) => {
+    setSelectedServices(prev => {
+      if (prev.find(s => s.id === service.id)) {
+        return prev.filter(s => s.id !== service.id);
+      } else {
+        return [...prev, service];
+      }
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -173,7 +183,7 @@ export default function Home() {
           clientPhone: clientData.phone,
           clientEmail: clientData.email,
           professionalId: selectedProfessional.id,
-          serviceId: selectedService.id,
+          serviceIds: selectedServices.map(s => s.id),
           date: selectedDate,
           time: selectedTime
         })
@@ -229,8 +239,8 @@ export default function Home() {
                 ) : services.map(service => (
                   <div 
                     key={service.id} 
-                    className={`option-card ${selectedService?.id === service.id ? 'selected' : ''}`}
-                    onClick={() => setSelectedService(service)}
+                    className={`option-card ${selectedServices.some(s => s.id === service.id) ? 'selected' : ''}`}
+                    onClick={() => toggleService(service)}
                     style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}
                   >
                     {/* Imagem do Serviço */}
@@ -261,7 +271,7 @@ export default function Home() {
                 ))}
               </div>
             )}
-            <button className="btn-primary w-full mt-4" onClick={handleNextStep} style={{ opacity: selectedService ? 1 : 0.5 }} disabled={isLoadingData || !selectedService}>
+            <button className="btn-primary w-full mt-4" onClick={handleNextStep} style={{ opacity: selectedServices.length > 0 ? 1 : 0.5 }} disabled={isLoadingData || selectedServices.length === 0}>
               Continuar <ChevronRight size={20} />
             </button>
           </div>
@@ -356,15 +366,33 @@ export default function Home() {
                   {availableTimes.length === 0 ? (
                     <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: 'var(--muted)', fontSize: '0.9rem' }}>Nenhum horário disponível para hoje.</p>
                   ) : availableTimes.map(time => {
-                    const isOccupied = occupiedTimes.includes(time);
+                    const requiredSlots = selectedServices.length > 0 ? selectedServices.length : 1;
+                    
+                    const isTimeSlotValid = (timeStr) => {
+                        for (let i = 0; i < requiredSlots; i++) {
+                            const [h, m] = timeStr.split(':').map(Number);
+                            const totalMins = h * 60 + m + i * 30;
+                            const nextH = Math.floor(totalMins / 60);
+                            const nextM = totalMins % 60;
+                            const nextTime = `${nextH.toString().padStart(2, '0')}:${nextM.toString().padStart(2, '0')}`;
+                            
+                            if (!availableTimes.includes(nextTime) || occupiedTimes.includes(nextTime)) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    };
+                    
+                    const isValid = isTimeSlotValid(time);
+
                     return (
                       <div 
                         key={time} 
-                        className={`time-card flex-center ${selectedTime === time ? 'selected' : ''} ${isOccupied ? 'occupied' : ''}`}
-                        onClick={() => !isOccupied && setSelectedTime(time)}
-                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        className={`time-card flex-center ${selectedTime === time ? 'selected' : ''} ${!isValid ? 'occupied' : ''}`}
+                        onClick={() => isValid && setSelectedTime(time)}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: !isValid ? 0.6 : 1 }}
                       >
-                        {isOccupied ? <span style={{ fontSize: '0.75rem', lineHeight: '1' }}>Horário<br/>indisponível</span> : time}
+                        {!isValid ? <span style={{ fontSize: '0.75rem', lineHeight: '1' }}>Horário<br/>indisponível</span> : time}
                       </div>
                     );
                   })}
@@ -425,7 +453,7 @@ export default function Home() {
               <CheckCircle size={64} />
             </div>
             <h2>{isExistingClient ? 'Achei seu Perfil! 🎉' : 'Agendamento Confirmado!'}</h2>
-            <p>Seu horário com <strong>{selectedProfessional.name}</strong> para <strong>{selectedService.name}</strong> foi reservado com sucesso.</p>
+            <p>Seu horário com <strong>{selectedProfessional.name}</strong> para <strong>{selectedServices.map(s => s.name).join(' + ')}</strong> foi reservado com sucesso.</p>
             <div className="success-details">
               <div className="detail-row">
                 <Calendar size={18} /> 

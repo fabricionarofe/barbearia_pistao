@@ -38,8 +38,14 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { clientName, clientPhone, clientEmail, professionalId, serviceId, date, time } = body;
+    const { clientName, clientPhone, clientEmail, professionalId, serviceId, serviceIds, date, time } = body;
     
+    const servicesToBook = serviceIds || (serviceId ? [serviceId] : []);
+    
+    if (servicesToBook.length === 0) {
+      return NextResponse.json({ error: 'Nenhum serviço selecionado' }, { status: 400 });
+    }
+
     const db = await openDb();
     
     // 1. Tentar encontrar cliente ou criar um novo
@@ -56,23 +62,42 @@ export async function POST(request) {
       clientId = clientResult.lastID;
     }
     
-    // 2. Verificar se o horário já está ocupado
-    const existingAppointment = await db.get(
-      "SELECT id FROM appointments WHERE professional_id = ? AND appointment_date = ? AND appointment_time = ? AND status != 'cancelled'",
-      [professionalId, date, time]
-    );
-    
-    if (existingAppointment) {
-      return NextResponse.json({ error: 'Horário já está reservado' }, { status: 400 });
+    // 2. Verificar se todos os horários necessários estão livres
+    for (let i = 0; i < servicesToBook.length; i++) {
+      const [h, m] = time.split(':').map(Number);
+      const totalMins = h * 60 + m + i * 30;
+      const nextH = Math.floor(totalMins / 60);
+      const nextM = totalMins % 60;
+      const nextTime = `${nextH.toString().padStart(2, '0')}:${nextM.toString().padStart(2, '0')}`;
+
+      const existingAppointment = await db.get(
+        "SELECT id FROM appointments WHERE professional_id = ? AND appointment_date = ? AND appointment_time = ? AND status != 'cancelled'",
+        [professionalId, date, nextTime]
+      );
+      
+      if (existingAppointment) {
+        return NextResponse.json({ error: `O horário ${nextTime} já está reservado` }, { status: 400 });
+      }
     }
     
-    // 3. Criar o agendamento
-    const appointmentResult = await db.run(
-      'INSERT INTO appointments (client_id, professional_id, service_id, appointment_date, appointment_time, status) VALUES (?, ?, ?, ?, ?, ?)',
-      [clientId, professionalId, serviceId, date, time, 'pending']
-    );
+    // 3. Criar os agendamentos (um para cada serviço, em horários sequenciais)
+    let lastAppointmentId = null;
+    for (let i = 0; i < servicesToBook.length; i++) {
+      const sId = servicesToBook[i];
+      const [h, m] = time.split(':').map(Number);
+      const totalMins = h * 60 + m + i * 30;
+      const nextH = Math.floor(totalMins / 60);
+      const nextM = totalMins % 60;
+      const nextTime = `${nextH.toString().padStart(2, '0')}:${nextM.toString().padStart(2, '0')}`;
+
+      const appointmentResult = await db.run(
+        'INSERT INTO appointments (client_id, professional_id, service_id, appointment_date, appointment_time, status) VALUES (?, ?, ?, ?, ?, ?)',
+        [clientId, professionalId, sId, date, nextTime, 'pending']
+      );
+      lastAppointmentId = appointmentResult.lastID;
+    }
     
-    return NextResponse.json({ success: true, appointmentId: appointmentResult.lastID, isExistingClient: !!existingClient });
+    return NextResponse.json({ success: true, appointmentId: lastAppointmentId, isExistingClient: !!existingClient });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: error.message || 'Erro ao criar agendamento', stack: error.stack }, { status: 500 });
