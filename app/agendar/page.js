@@ -378,7 +378,12 @@ export default function Home() {
                             const nextM = totalMins % 60;
                             const nextTime = `${nextH.toString().padStart(2, '0')}:${nextM.toString().padStart(2, '0')}`;
                             
-                            if (!availableTimes.includes(nextTime) || occupiedTimes.includes(nextTime)) {
+                            if (!availableTimes.includes(nextTime)) {
+                                return false;
+                            }
+                            
+                            // A partir das 18h (até as 20h), sempre permitir agendamento (ignorar conflitos)
+                            if (nextH < 18 && occupiedTimes.includes(nextTime)) {
                                 return false;
                             }
                         }

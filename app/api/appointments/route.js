@@ -70,13 +70,16 @@ export async function POST(request) {
       const nextM = totalMins % 60;
       const nextTime = `${nextH.toString().padStart(2, '0')}:${nextM.toString().padStart(2, '0')}`;
 
-      const existingAppointment = await db.get(
-        "SELECT id FROM appointments WHERE professional_id = ? AND appointment_date = ? AND appointment_time = ? AND status != 'cancelled'",
-        [professionalId, date, nextTime]
-      );
-      
-      if (existingAppointment) {
-        return NextResponse.json({ error: `O horário ${nextTime} já está reservado` }, { status: 400 });
+      // A partir das 18h, permitir agendamentos ilimitados
+      if (nextH < 18) {
+        const existingAppointment = await db.get(
+          "SELECT id FROM appointments WHERE professional_id = ? AND appointment_date = ? AND appointment_time = ? AND status != 'cancelled'",
+          [professionalId, date, nextTime]
+        );
+        
+        if (existingAppointment) {
+          return NextResponse.json({ error: `O horário ${nextTime} já está reservado` }, { status: 400 });
+        }
       }
     }
     
