@@ -59,6 +59,8 @@ export default function Home() {
     // Mais específicos primeiro para evitar conflitos (ex: "moicano" vs "degrade")
     if (n.includes('moicano') && (n.includes('degrade') || n.includes('degradê'))) return '/img/moicano degradê.jpeg';
     if (n.includes('moicano')) return '/img/moicano.jpeg';
+    if (n.includes('navalhado')) return '/img/navalhado.jpeg';
+    if (n.includes('social')) return '/img/social.jpeg';
     if (n.includes('americano')) return '/img/americano.jpeg';
     if (n.includes('barba')) return '/img/barba.jpeg';
     if (n.includes('degrade') || n.includes('degradê')) return '/img/degrade na 0.jpeg';
