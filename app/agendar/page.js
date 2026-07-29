@@ -109,7 +109,7 @@ export default function Home() {
       startMin = baseMin;
     }
 
-    for (let h = 9; h <= 20; h++) {
+    for (let h = 9; h <= 21; h++) {
       // Bloquear horários de almoço (12:00 até 14:30)
       if (h >= 12 && h < 15) {
         continue;
@@ -125,7 +125,7 @@ export default function Home() {
       if (!isToday || !isPastT1 || occupiedTimes.includes(t1)) {
         times.push(t1);
       }
-      if (h < 20 && (!isToday || !isPastT2 || occupiedTimes.includes(t2))) {
+      if (h < 21 && (!isToday || !isPastT2 || occupiedTimes.includes(t2))) {
         times.push(t2);
       }
     }
