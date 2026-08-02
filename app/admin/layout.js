@@ -32,8 +32,12 @@ export default function AdminLayout({ children }) {
           </div>
           <h2 style={{ fontSize: '1rem', margin: 0 }}>Barbearia</h2>
         </div>
-        <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ gap: '6px', fontWeight: 'bold', fontSize: '0.85rem' }}>
+          {isMobileMenuOpen ? (
+            <>FECHAR <X size={24} /></>
+          ) : (
+            <>MENU <Menu size={24} /></>
+          )}
         </button>
       </div>
 
