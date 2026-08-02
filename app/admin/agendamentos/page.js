@@ -78,36 +78,36 @@ export default function AgendamentosPage() {
         ) : (
           <div className="action-list">
             {appointments.map(appt => (
-              <div key={appt.id} className="action-item" style={{ justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <div style={{ padding: '0.5rem', backgroundColor: 'rgba(255,215,0,0.1)', borderRadius: '8px', color: 'var(--primary)' }}>
+              <div key={appt.id} className="appointment-card">
+                <div className="appointment-info">
+                  <div className="appointment-icon">
                     <Clock size={20} />
                   </div>
-                  <div>
-                    <h3 style={{ fontSize: '1rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div className="appointment-details">
+                    <h3>
                       {appt.client_name} - {appt.client_phone} {getStatusBadge(appt.status)}
                     </h3>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--muted)', display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                    <p>
                       <Calendar size={14} /> {appt.appointment_date.split('-').reverse().join('/')} às {appt.appointment_time}
-                      <span style={{ margin: '0 0.5rem' }}>•</span>
+                      <span className="dot-separator">•</span>
                       <Scissors size={14} /> {appt.service_name} ({appt.professional_name})
                     </p>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                <div className="appointment-actions">
                   {appt.status === 'pending' && (
-                    <button onClick={() => handleUpdateStatus(appt.id, 'confirmed')} style={{ padding: '0.5rem', backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: 'bold' }} title="Confirmar Agendamento">
+                    <button onClick={() => handleUpdateStatus(appt.id, 'confirmed')} className="btn-action btn-confirm" title="Confirmar Agendamento">
                       <CheckCircle size={16} /> Confirmar
                     </button>
                   )}
                   {appt.status === 'confirmed' && (
-                    <button onClick={() => handleUpdateStatus(appt.id, 'completed')} style={{ padding: '0.5rem', backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: 'bold' }} title="Marcar como Concluído">
+                    <button onClick={() => handleUpdateStatus(appt.id, 'completed')} className="btn-action btn-complete" title="Marcar como Concluído">
                       <Check size={16} /> Concluir
                     </button>
                   )}
                   {(appt.status === 'pending' || appt.status === 'confirmed') && (
-                    <button onClick={() => handleUpdateStatus(appt.id, 'cancelled')} style={{ padding: '0.5rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderRadius: '8px' }} title="Cancelar Agendamento">
-                      <X size={18} />
+                    <button onClick={() => handleUpdateStatus(appt.id, 'cancelled')} className="btn-action btn-cancel" title="Cancelar Agendamento">
+                      <X size={18} /> <span className="cancel-text">Cancelar</span>
                     </button>
                   )}
                 </div>

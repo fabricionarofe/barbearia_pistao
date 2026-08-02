@@ -51,6 +51,10 @@ export default function AdminLayout({ children }) {
             <h2>Barbearia</h2>
             <p style={{ textTransform: 'uppercase' }}>ANTONIO PAULO</p>
           </div>
+          {/* Botão de fechar só aparece no mobile */}
+          <button className="close-menu-btn" onClick={closeMenu} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--foreground)' }}>
+            <X size={24} />
+          </button>
         </div>
 
         <nav>
@@ -127,6 +131,29 @@ export default function AdminLayout({ children }) {
       <main className="main-content">
         {children}
       </main>
+
+      {/* Bottom Navigation for Mobile */}
+      <div className="bottom-nav">
+        <Link href="/admin" className={`bottom-nav-item ${pathname === '/admin' ? 'active' : ''}`}>
+          <LayoutDashboard size={20} />
+          <span>Início</span>
+        </Link>
+        <Link href="/admin/agendamentos" className={`bottom-nav-item ${pathname?.startsWith('/admin/agendamentos') ? 'active' : ''}`}>
+          <div style={{ position: 'relative' }}>
+            <Calendar size={20} />
+            <span className="bottom-nav-badge">2</span>
+          </div>
+          <span>Agenda</span>
+        </Link>
+        <Link href="/admin/clientes" className={`bottom-nav-item ${pathname?.startsWith('/admin/clientes') ? 'active' : ''}`}>
+          <Users size={20} />
+          <span>Clientes</span>
+        </Link>
+        <button onClick={() => setIsMobileMenuOpen(true)} className="bottom-nav-item">
+          <Menu size={20} />
+          <span>Menu</span>
+        </button>
+      </div>
     </div>
   );
 }

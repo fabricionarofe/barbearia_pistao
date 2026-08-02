@@ -835,6 +835,7 @@ button {
   .main-content {
     padding: 1rem;
     gap: 1.25rem;
+    padding-bottom: 80px; /* Space for bottom nav */
   }
 
   .page-header h1 {
@@ -881,6 +882,72 @@ button {
     font-size: 1.1rem;
     margin-bottom: 1rem;
   }
+
+  /* Mobile App-like styling for appointments */
+  .appointment-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  .appointment-actions {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .btn-action {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem;
+    font-size: 1rem;
+  }
+
+  /* Bottom Navigation Styles (Mobile Only) */
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--sidebar-bg);
+    border-top: 1px solid var(--sidebar-border);
+    z-index: 990;
+    justify-content: space-around;
+    padding: 0.75rem 0.5rem;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  }
+
+  .bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-weight: 500;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .bottom-nav-item.active {
+    color: var(--primary);
+  }
+
+  .bottom-nav-badge {
+    position: absolute;
+    top: -5px;
+    right: -8px;
+    background-color: #ef4444;
+    color: white;
+    font-size: 0.6rem;
+    padding: 2px 5px;
+    border-radius: 10px;
+    font-weight: bold;
+  }
 }
 
 @media (max-width: 480px) {
@@ -902,5 +969,97 @@ button {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+/* Base styles for appointment cards (Desktop/Default) */
+.appointment-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.01);
+  transition: all 0.2s ease;
+}
+
+.appointment-card:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.appointment-info {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.appointment-icon {
+  padding: 0.5rem;
+  background-color: rgba(255,215,0,0.1);
+  border-radius: 8px;
+  color: var(--primary);
+}
+
+.appointment-details h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.appointment-details p {
+  font-size: 0.85rem;
+  color: var(--muted);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.dot-separator {
+  margin: 0 0.5rem;
+}
+
+.appointment-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-action {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.2s;
+}
+
+.btn-action:hover {
+  opacity: 0.8;
+}
+
+.btn-confirm {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.btn-complete {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.btn-cancel {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.bottom-nav {
+  display: none;
 }
       
