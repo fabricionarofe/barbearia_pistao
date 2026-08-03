@@ -110,28 +110,22 @@ export default function Home() {
     }
 
     for (let h = 9; h <= 21; h++) {
-      // Bloquear horários de almoço (12:00 até 14:30)
-      if (h >= 12 && h < 15) {
-        continue;
-      }
-      
       const t1 = `${h.toString().padStart(2, '0')}:00`;
       const t2 = `${h.toString().padStart(2, '0')}:30`;
       
       const isPastT1 = h < startHour || (h === startHour && 0 < startMin);
       const isPastT2 = h < startHour || (h === startHour && 30 < startMin);
       
-      // Mostrar se: Não for hoje, OU não tiver passado, OU estiver agendado
-      if (!isToday || !isPastT1 || occupiedTimes.includes(t1)) {
+      if (!isToday || !isPastT1) {
         times.push(t1);
       }
-      if (h < 21 && (!isToday || !isPastT2 || occupiedTimes.includes(t2))) {
+      if (h < 21 && (!isToday || !isPastT2)) {
         times.push(t2);
       }
     }
     
     setAvailableTimes(times);
-  }, [selectedDate, storeStatus, returnTime, occupiedTimes]);
+  }, [selectedDate, storeStatus, returnTime]);
 
   useEffect(() => {
     if (selectedDate && selectedProfessional) {
@@ -368,6 +362,10 @@ export default function Home() {
                   {availableTimes.length === 0 ? (
                     <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: 'var(--muted)', fontSize: '0.9rem' }}>Nenhum horário disponível para hoje.</p>
                   ) : availableTimes.map(time => {
+                    const [hourStr] = time.split(':');
+                    const hourInt = parseInt(hourStr, 10);
+                    const isLunch = hourInt >= 12 && hourInt < 15;
+
                     const requiredSlots = selectedServices.length > 0 ? selectedServices.length : 1;
                     
                     const isTimeSlotValid = (timeStr) => {
@@ -378,7 +376,7 @@ export default function Home() {
                             const nextM = totalMins % 60;
                             const nextTime = `${nextH.toString().padStart(2, '0')}:${nextM.toString().padStart(2, '0')}`;
                             
-                            if (!availableTimes.includes(nextTime)) {
+                            if (!availableTimes.includes(nextTime) || (nextH >= 12 && nextH < 15)) {
                                 return false;
                             }
                             
@@ -390,16 +388,21 @@ export default function Home() {
                         return true;
                     };
                     
-                    const isValid = isTimeSlotValid(time);
+                    const isValid = !isLunch && isTimeSlotValid(time);
 
                     return (
                       <div 
                         key={time} 
                         className={`time-card flex-center ${selectedTime === time ? 'selected' : ''} ${!isValid ? 'occupied' : ''}`}
                         onClick={() => isValid && setSelectedTime(time)}
-                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: !isValid ? 0.6 : 1 }}
+                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: !isValid ? 0.6 : 1, padding: '0.5rem' }}
                       >
-                        {!isValid ? <span style={{ fontSize: '0.75rem', lineHeight: '1' }}>Horário<br/>indisponível</span> : time}
+                        <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{time}</span>
+                        {isLunch ? (
+                          <span style={{ fontSize: '0.65rem', color: '#eab308', textTransform: 'uppercase', marginTop: '2px', letterSpacing: '0.05em' }}>Almoço</span>
+                        ) : !isValid ? (
+                          <span style={{ fontSize: '0.65rem', color: '#ef4444', textTransform: 'uppercase', marginTop: '2px', letterSpacing: '0.05em' }}>Ocupado</span>
+                        ) : null}
                       </div>
                     );
                   })}
