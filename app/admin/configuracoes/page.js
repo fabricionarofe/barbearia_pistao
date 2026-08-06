@@ -69,7 +69,7 @@ export default function ConfiguracoesPage() {
 
   const handleShareWhatsApp = () => {
     const text = encodeURIComponent(
-      `💈 *Barbearia* - Agende seu horário de forma rápida e fácil acessando nosso link:\n${bookingUrl}`
+      `💈 *Barbearia do Paulo* - Agende seu horário de forma rápida e fácil acessando nosso link:\n${bookingUrl}`
     );
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
   };
