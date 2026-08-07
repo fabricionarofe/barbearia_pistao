@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, Scissors, User, Phone, CheckCircle, ChevronRight, ArrowLeft, Camera, Share2, Globe, Utensils } from 'lucide-react';
+import { Calendar, Clock, Scissors, User, Phone, CheckCircle, ChevronRight, ArrowLeft, Utensils } from 'lucide-react';
+import { InstagramIcon, FacebookIcon, WhatsAppIcon, TikTokIcon, YoutubeIcon, WebsiteIcon, TwitterIcon } from '../components/SocialIcons';
 import '../globals.css';
 
 // Helper para formatar data YYYY-MM-DD no fuso horário local (evita bug de UTC mudar o dia após às 21h)
@@ -560,15 +561,41 @@ export default function Home() {
       {/* Footer com Redes Sociais */}
       {siteSettings?.social_links && (
         <footer style={{ marginTop: '3rem', padding: '1.5rem 0', textAlign: 'center', borderTop: '1px solid var(--card-border)' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1.25rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+            {siteSettings.social_links.whatsapp && (
+              <a href={siteSettings.social_links.whatsapp.startsWith('http') ? siteSettings.social_links.whatsapp : `https://wa.me/55${siteSettings.social_links.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" style={{ color: '#25D366', transition: 'transform 0.2s' }} title="WhatsApp">
+                <WhatsAppIcon size={22} color="#25D366" />
+              </a>
+            )}
             {siteSettings.social_links.instagram && (
-              <a href={siteSettings.social_links.instagram} target="_blank" rel="noreferrer" style={{ color: 'var(--muted)' }}><Camera size={20} /></a>
+              <a href={siteSettings.social_links.instagram} target="_blank" rel="noreferrer" style={{ color: '#e1306c', transition: 'transform 0.2s' }} title="Instagram">
+                <InstagramIcon size={22} color="#e1306c" />
+              </a>
             )}
             {siteSettings.social_links.facebook && (
-              <a href={siteSettings.social_links.facebook} target="_blank" rel="noreferrer" style={{ color: 'var(--muted)' }}><Share2 size={20} /></a>
+              <a href={siteSettings.social_links.facebook} target="_blank" rel="noreferrer" style={{ color: '#1877f2', transition: 'transform 0.2s' }} title="Facebook">
+                <FacebookIcon size={22} color="#1877f2" />
+              </a>
+            )}
+            {siteSettings.social_links.tiktok && (
+              <a href={siteSettings.social_links.tiktok} target="_blank" rel="noreferrer" style={{ color: '#00f2fe', transition: 'transform 0.2s' }} title="TikTok">
+                <TikTokIcon size={22} color="#00f2fe" />
+              </a>
+            )}
+            {siteSettings.social_links.youtube && (
+              <a href={siteSettings.social_links.youtube} target="_blank" rel="noreferrer" style={{ color: '#ff0000', transition: 'transform 0.2s' }} title="YouTube">
+                <YoutubeIcon size={22} color="#ff0000" />
+              </a>
             )}
             {siteSettings.social_links.website && (
-              <a href={siteSettings.social_links.website} target="_blank" rel="noreferrer" style={{ color: 'var(--muted)' }}><Globe size={20} /></a>
+              <a href={siteSettings.social_links.website} target="_blank" rel="noreferrer" style={{ color: '#3b82f6', transition: 'transform 0.2s' }} title="Website">
+                <WebsiteIcon size={22} color="#3b82f6" />
+              </a>
+            )}
+            {siteSettings.social_links.twitter && (
+              <a href={siteSettings.social_links.twitter} target="_blank" rel="noreferrer" style={{ color: '#1da1f2', transition: 'transform 0.2s' }} title="X / Twitter">
+                <TwitterIcon size={22} color="#1da1f2" />
+              </a>
             )}
           </div>
           <p style={{ fontSize: '0.8rem', color: 'var(--muted)', margin: 0 }}>© Barbearia do Paulo - Todos os direitos reservados</p>

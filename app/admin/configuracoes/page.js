@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Settings, Save, Upload, Share2, Camera, Globe, Video, MessageSquare, CheckCircle, Palette } from 'lucide-react';
+import { Settings, Save, Upload, Share2, CheckCircle, Palette } from 'lucide-react';
+import { InstagramIcon, FacebookIcon, WhatsAppIcon, TikTokIcon, YoutubeIcon, WebsiteIcon, TwitterIcon } from '../../components/SocialIcons';
 
 export default function ConfiguracoesPage() {
   const [siteTheme, setSiteTheme] = useState({
@@ -13,6 +14,7 @@ export default function ConfiguracoesPage() {
   const [socialLinks, setSocialLinks] = useState({
     instagram: '',
     facebook: '',
+    whatsapp: '',
     tiktok: '',
     youtube: '',
     website: '',
@@ -79,7 +81,7 @@ export default function ConfiguracoesPage() {
       <div className="page-header flex justify-between align-center" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1>Configurações Avançadas</h1>
-          <p>Personalize o visual do site, redes sociais e links de agendamento</p>
+          <p>Personalize o visual do site, redes sociais (WhatsApp, Instagram, Facebook, TikTok...) e agendamento</p>
         </div>
         <button
           onClick={handleSave}
@@ -143,7 +145,7 @@ export default function ConfiguracoesPage() {
               {/* Banner */}
               <div>
                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                  Banner do Site (recomendado: 1920×480px, proporção 4:1)
+                  Banner do Site (opcional)
                 </label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {siteTheme.banner_url && (
@@ -153,8 +155,8 @@ export default function ConfiguracoesPage() {
                   )}
                   <input
                     type="text"
-                    placeholder="URL do banner de capa"
-                    value={siteTheme.banner_url}
+                    placeholder="URL do banner de capa (deixe em branco se não quiser usar)"
+                    value={siteTheme.banner_url || ''}
                     onChange={e => setSiteTheme({ ...siteTheme, banner_url: e.target.value })}
                     style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--card-border)', backgroundColor: '#1a1a1a', color: 'white' }}
                   />
@@ -184,24 +186,38 @@ export default function ConfiguracoesPage() {
             </div>
           </div>
 
-          {/* Seção 2: Redes Sociais */}
+          {/* Seção 2: Redes Sociais Completas */}
           <div className="panel-card" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem' }}>
             <h2 style={{ fontSize: '1.15rem', fontWeight: 'bold', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Share2 size={20} style={{ color: 'var(--primary)' }} /> Redes Sociais
+              <Share2 size={20} style={{ color: 'var(--primary)' }} /> Redes Sociais & Contato
             </h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '1.25rem' }}>
-              Links para suas redes sociais (exibidos no site público)
+              Links oficiais exibidos no rodapé do site público para seus clientes
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem' }}>
+              {/* WhatsApp */}
+              <div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: '#25D366' }}>
+                  <WhatsAppIcon size={18} color="#25D366" /> WhatsApp (Link ou Número com DDD)
+                </label>
+                <input
+                  type="text"
+                  placeholder="ex: (11) 99999-9999 ou https://wa.me/5511999999999"
+                  value={socialLinks.whatsapp || ''}
+                  onChange={e => setSocialLinks({ ...socialLinks, whatsapp: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--card-border)', backgroundColor: '#1a1a1a', color: 'white' }}
+                />
+              </div>
+
               {/* Instagram */}
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: '#e1306c' }}>
-                  <Camera size={16} /> Instagram
+                  <InstagramIcon size={18} color="#e1306c" /> Instagram (Perfil público)
                 </label>
                 <input
                   type="url"
-                  placeholder="https://www.instagram.com/suabarbearia"
+                  placeholder="https://www.instagram.com/barbeariadopaulo"
                   value={socialLinks.instagram || ''}
                   onChange={e => setSocialLinks({ ...socialLinks, instagram: e.target.value })}
                   style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--card-border)', backgroundColor: '#1a1a1a', color: 'white' }}
@@ -211,11 +227,11 @@ export default function ConfiguracoesPage() {
               {/* Facebook */}
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: '#1877f2' }}>
-                  <Share2 size={16} /> Facebook
+                  <FacebookIcon size={18} color="#1877f2" /> Facebook
                 </label>
                 <input
                   type="url"
-                  placeholder="https://facebook.com/suabarbearia"
+                  placeholder="https://facebook.com/barbeariadopaulo"
                   value={socialLinks.facebook || ''}
                   onChange={e => setSocialLinks({ ...socialLinks, facebook: e.target.value })}
                   style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--card-border)', backgroundColor: '#1a1a1a', color: 'white' }}
@@ -225,11 +241,11 @@ export default function ConfiguracoesPage() {
               {/* TikTok */}
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: '#00f2fe' }}>
-                  <Video size={16} /> TikTok
+                  <TikTokIcon size={18} color="#00f2fe" /> TikTok
                 </label>
                 <input
                   type="url"
-                  placeholder="https://tiktok.com/@suabarbearia"
+                  placeholder="https://tiktok.com/@barbeariadopaulo"
                   value={socialLinks.tiktok || ''}
                   onChange={e => setSocialLinks({ ...socialLinks, tiktok: e.target.value })}
                   style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--card-border)', backgroundColor: '#1a1a1a', color: 'white' }}
@@ -239,11 +255,11 @@ export default function ConfiguracoesPage() {
               {/* YouTube */}
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: '#ff0000' }}>
-                  <Video size={16} /> YouTube
+                  <YoutubeIcon size={18} color="#ff0000" /> YouTube
                 </label>
                 <input
                   type="url"
-                  placeholder="https://youtube.com/@suabarbearia"
+                  placeholder="https://youtube.com/@barbeariadopaulo"
                   value={socialLinks.youtube || ''}
                   onChange={e => setSocialLinks({ ...socialLinks, youtube: e.target.value })}
                   style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--card-border)', backgroundColor: '#1a1a1a', color: 'white' }}
@@ -253,11 +269,11 @@ export default function ConfiguracoesPage() {
               {/* Website */}
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: '#3b82f6' }}>
-                  <Globe size={16} /> Website
+                  <WebsiteIcon size={18} color="#3b82f6" /> Website
                 </label>
                 <input
                   type="url"
-                  placeholder="https://suabarbearia.com.br"
+                  placeholder="https://barbeariadopaulo.com.br"
                   value={socialLinks.website || ''}
                   onChange={e => setSocialLinks({ ...socialLinks, website: e.target.value })}
                   style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--card-border)', backgroundColor: '#1a1a1a', color: 'white' }}
@@ -267,11 +283,11 @@ export default function ConfiguracoesPage() {
               {/* X (Twitter) */}
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.4rem', color: '#1da1f2' }}>
-                  <MessageSquare size={16} /> X (Twitter)
+                  <TwitterIcon size={18} color="#1da1f2" /> X (Twitter)
                 </label>
                 <input
                   type="url"
-                  placeholder="https://x.com/suabarbearia"
+                  placeholder="https://x.com/barbeariadopaulo"
                   value={socialLinks.twitter || ''}
                   onChange={e => setSocialLinks({ ...socialLinks, twitter: e.target.value })}
                   style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--card-border)', backgroundColor: '#1a1a1a', color: 'white' }}
@@ -283,7 +299,7 @@ export default function ConfiguracoesPage() {
           {/* Seção 3: Link e Botão WhatsApp */}
           <div className="panel-card" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem' }}>
             <h2 style={{ fontSize: '1.15rem', fontWeight: 'bold', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Share2 size={20} style={{ color: 'var(--primary)' }} /> Link de Agendamento
+              <Share2 size={20} style={{ color: 'var(--primary)' }} /> Link de Agendamento Rápido
             </h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '1.25rem' }}>
               Compartilhe o link direto para os seus clientes realizarem agendamentos
@@ -315,7 +331,7 @@ export default function ConfiguracoesPage() {
                   boxShadow: '0 4px 12px rgba(37, 211, 102, 0.25)'
                 }}
               >
-                <Share2 size={20} /> Compartilhar Link no WhatsApp
+                <WhatsAppIcon size={22} color="white" /> Compartilhar Link no WhatsApp
               </button>
             </div>
           </div>

@@ -1,235 +1,243 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, DollarSign, Award, Scissors, Clock, TrendingUp } from 'lucide-react';
+import { BarChart3, TrendingUp, Clock, Scissors, Award, Calendar, DollarSign, User, Sparkles } from 'lucide-react';
 
 export default function RelatoriosPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [hoveredPoint, setHoveredPoint] = useState(null);
 
   useEffect(() => {
     fetch('/api/reports', { headers: { 'ngrok-skip-browser-warning': 'true' } })
       .then(res => res.json())
-      .then(resData => setData(resData))
+      .then(resData => {
+        setData(resData);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
-  // Calcular pontos para o SVG Line Chart
-  const renderLineChart = () => {
-    if (!data?.dailyTrend || data.dailyTrend.length === 0) return null;
-
-    const trend = data.dailyTrend;
-    const maxVal = Math.max(...trend.map(t => t.count), 5);
-
-    const width = 600;
-    const height = 220;
-    const padding = 35;
-
-    const points = trend.map((t, idx) => {
-      const x = padding + (idx / (trend.length - 1)) * (width - padding * 2);
-      const y = height - padding - (t.count / maxVal) * (height - padding * 2);
-      return { x, y, ...t };
-    });
-
-    const pathD = points.reduce((acc, pt, i) => {
-      return i === 0 ? `M ${pt.x} ${pt.y}` : `${acc} L ${pt.x} ${pt.y}`;
-    }, '');
-
-    const areaD = `${pathD} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`;
-
-    return (
-      <div style={{ width: '100%', overflowX: 'auto', position: 'relative' }}>
-        <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto', minWidth: '450px' }}>
-          {/* Grid lines */}
-          {[0, 0.25, 0.5, 0.75, 1].map((ratio, idx) => {
-            const y = height - padding - ratio * (height - padding * 2);
-            const val = Math.round(ratio * maxVal);
-            return (
-              <g key={idx}>
-                <line x1={padding} y1={y} x2={width - padding} y2={y} stroke="#333" strokeDasharray="3 3" />
-                <text x={10} y={y + 4} fill="#888" fontSize="10">{val}</text>
-              </g>
-            );
-          })}
-
-          {/* Area under line */}
-          <path d={areaD} fill="rgba(234, 179, 8, 0.08)" />
-
-          {/* Line */}
-          <path d={pathD} fill="none" stroke="#eab308" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-
-          {/* Points */}
-          {points.map((pt, idx) => (
-            <circle
-              key={idx}
-              cx={pt.x}
-              cy={pt.y}
-              r={hoveredPoint?.label === pt.label ? 6 : 4}
-              fill="#eab308"
-              stroke="#121212"
-              strokeWidth="2"
-              style={{ cursor: 'pointer', transition: 'r 0.15s ease' }}
-              onMouseEnter={() => setHoveredPoint(pt)}
-              onMouseLeave={() => setHoveredPoint(null)}
-            />
-          ))}
-
-          {/* X Axis Labels (sample every 5th) */}
-          {points.filter((_, idx) => idx % 5 === 0 || idx === points.length - 1).map((pt, idx) => (
-            <text key={idx} x={pt.x - 12} y={height - 10} fill="#888" fontSize="10">
-              {pt.label}
-            </text>
-          ))}
-        </svg>
-
-        {/* Floating Tooltip */}
-        {hoveredPoint && (
-          <div
-            style={{
-              position: 'absolute',
-              top: '20px',
-              right: '20px',
-              backgroundColor: '#1e1e1e',
-              border: '1px solid var(--primary)',
-              borderRadius: '8px',
-              padding: '0.5rem 0.8rem',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-              zIndex: 10
-            }}
-          >
-            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--muted)' }}>{hoveredPoint.label}</p>
-            <p style={{ margin: '2px 0 0 0', fontSize: '0.95rem', fontWeight: 'bold', color: 'var(--primary)' }}>
-              Atendimentos: {hoveredPoint.count}
-            </p>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // Render Bar Chart for Popular Hours
-  const renderBarChart = () => {
-    if (!data?.popularHours) return null;
-    const hours = data.popularHours;
-    const maxVal = Math.max(...hours.map(h => h.count), 1);
-
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
-        {hours.map((item, idx) => {
-          const pct = (item.count / maxVal) * 100;
-          return (
-            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <span style={{ width: '50px', fontSize: '0.85rem', color: 'var(--muted)', textAlign: 'right' }}>{item.hour}</span>
-              <div style={{ flex: 1, backgroundColor: '#1a1a1a', height: '24px', borderRadius: '6px', overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
-                <div
-                  style={{
-                    width: `${Math.max(pct, 2)}%`,
-                    height: '100%',
-                    backgroundColor: 'var(--primary)',
-                    borderRadius: '6px',
-                    transition: 'width 0.5s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'flex-end',
-                    paddingRight: '8px'
-                  }}
-                >
-                  {item.count > 0 && (
-                    <span style={{ fontSize: '0.75rem', color: '#000', fontWeight: 'bold' }}>{item.count}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
+  // Calcular estatísticas da curva de 30 dias
+  const maxDailyCount = data?.dailyTrend ? Math.max(...data.dailyTrend.map(d => d.count), 1) : 1;
+  const maxMonthlyRevenue = data?.monthlyComparison ? Math.max(...data.monthlyComparison.map(d => d.revenue), 1) : 1;
+  const maxHourCount = data?.popularHours ? Math.max(...data.popularHours.map(h => h.count), 1) : 1;
 
   return (
     <>
-      <div className="page-header">
-        <h1>Relatórios & Gráficos</h1>
-        <p>Acompanhe o desempenho da barbearia com gráficos detalhados</p>
+      <div className="page-header flex justify-between align-center" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>Relatórios e Inteligência de Negócio</h1>
+          <p style={{ color: 'var(--muted)', marginTop: '4px' }}>
+            Análise de tendência de agendamentos, serviços mais lucrativos e horários de pico
+          </p>
+        </div>
       </div>
 
       {loading ? (
         <div className="panel-card mt-4 empty-state">
-          <p>Carregando relatórios...</p>
+          <p>Gerando inteligência de relatórios...</p>
         </div>
       ) : (
-        <>
-          {/* Top Metrics Grid */}
-          <div className="summary-grid mt-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-            {/* Card 1 */}
-            <div className="summary-card" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.25rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: '500' }}>Atendimentos do Mês</span>
-                <div style={{ color: 'var(--primary)', backgroundColor: 'rgba(255,215,0,0.1)', padding: '0.4rem', borderRadius: '6px' }}>
-                  <Calendar size={18} />
-                </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1.5rem' }}>
+          {/* SEÇÃO 1: GRÁFICO 1 - Tendência de Atendimentos nos Últimos 30 Dias */}
+          <div className="panel-card" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <div>
+                <h2 style={{ fontSize: '1.15rem', fontWeight: 'bold', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <TrendingUp size={20} style={{ color: 'var(--primary)' }} /> Volume de Atendimentos (Últimos 30 Dias)
+                </h2>
+                <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: '2px' }}>
+                  Evolução diária de agendamentos concluídos na barbearia
+                </p>
               </div>
-              <h2 style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>{data?.monthlyCount || 0}</h2>
             </div>
 
-            {/* Card 2 */}
-            <div className="summary-card" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.25rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: '500' }}>Faturamento do Mês</span>
-                <div style={{ color: '#22c55e', backgroundColor: 'rgba(34,197,94,0.1)', padding: '0.4rem', borderRadius: '6px' }}>
-                  <DollarSign size={18} />
-                </div>
-              </div>
-              <h2 style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#22c55e' }}>
-                R$ {(data?.monthlyRevenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            {/* SVG Line & Bar Chart */}
+            <div style={{ width: '100%', height: '220px', display: 'flex', alignItems: 'flex-end', gap: '4px', paddingTop: '1.5rem' }}>
+              {data?.dailyTrend?.map((item, idx) => {
+                const heightPercent = Math.max((item.count / maxDailyCount) * 100, 4);
+                return (
+                  <div
+                    key={idx}
+                    style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}
+                    title={`${item.label}: ${item.count} cortes (R$ ${item.revenue})`}
+                  >
+                    <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '4px', opacity: item.count > 0 ? 1 : 0 }}>
+                      {item.count > 0 ? item.count : ''}
+                    </span>
+                    <div
+                      style={{
+                        width: '100%',
+                        maxWdith: '18px',
+                        height: `${heightPercent}%`,
+                        backgroundColor: item.count > 0 ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                        borderRadius: '4px 4px 0 0',
+                        transition: 'height 0.3s ease'
+                      }}
+                    />
+                    {idx % 4 === 0 && (
+                      <span style={{ fontSize: '0.65rem', color: 'var(--muted)', marginTop: '6px', whiteSpace: 'nowrap' }}>
+                        {item.label}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* SEÇÃO 2: DUAS COLUNAS (Comparativo 6 Meses & Horários de Pico) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+            {/* Gráfico 2: Comparativo Mensal de Faturamento (6 Meses) */}
+            <div className="panel-card" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <DollarSign size={20} style={{ color: '#22c55e' }} /> Comparativo de Faturamento (6 Meses)
               </h2>
-            </div>
+              <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '1.25rem' }}>
+                Receita total gerada em cada um dos últimos meses
+              </p>
 
-            {/* Card 3 */}
-            <div className="summary-card" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.25rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: '500' }}>Profissional Destaque</span>
-                <div style={{ color: '#a855f7', backgroundColor: 'rgba(168,85,247,0.1)', padding: '0.4rem', borderRadius: '6px' }}>
-                  <Award size={18} />
-                </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.5rem' }}>
+                {data?.monthlyComparison?.map((m, idx) => {
+                  const barPercent = Math.max((m.revenue / maxMonthlyRevenue) * 100, 5);
+                  return (
+                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                        <span style={{ fontWeight: '600' }}>{m.label}</span>
+                        <span style={{ fontWeight: 'bold', color: '#22c55e' }}>
+                          R$ {m.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ({m.count} cortes)
+                        </span>
+                      </div>
+                      <div style={{ width: '100%', height: '10px', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: '5px', overflow: 'hidden' }}>
+                        <div style={{ width: `${barPercent}%`, height: '100%', backgroundColor: '#22c55e', borderRadius: '5px', transition: 'width 0.5s ease' }} />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: 0 }}>{data?.topProf?.name || 'Sem registros'}</h3>
-              <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{data?.topProf?.count || 0} atendimentos</span>
             </div>
 
-            {/* Card 4 */}
-            <div className="summary-card" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.25rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: '500' }}>Serviço Mais Vendido</span>
-                <div style={{ color: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', padding: '0.4rem', borderRadius: '6px' }}>
-                  <Scissors size={18} />
+            {/* Gráfico 3: Horários de Pico / Maior Movimento */}
+            <div className="panel-card" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Clock size={20} style={{ color: '#a855f7' }} /> Horários de Pico
+              </h2>
+              <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '1.25rem' }}>
+                Horários de maior procura pelos clientes
+              </p>
+
+              {!data?.popularHours || data.popularHours.length === 0 ? (
+                <p style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>Nenhum dado registrado.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {data.popularHours.slice(0, 6).map((h, idx) => {
+                    const barPercent = Math.max((h.count / maxHourCount) * 100, 10);
+                    return (
+                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <span style={{ width: '50px', fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+                          {h.hour}
+                        </span>
+                        <div style={{ flex: 1, height: '8px', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ width: `${barPercent}%`, height: '100%', backgroundColor: '#a855f7', borderRadius: '4px' }} />
+                        </div>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--muted)', minWidth: '60px', textAlign: 'right' }}>
+                          {h.count} agend.
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: 0 }}>{data?.topServ?.name || 'Sem registros'}</h3>
-              <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{data?.topServ?.count || 0} realizados</span>
+              )}
             </div>
           </div>
 
-          {/* Gráfico 1: Atendimentos nos Últimos 30 dias */}
-          <div className="panel-card mt-4" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-              <TrendingUp size={20} style={{ color: 'var(--primary)' }} />
-              <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: 0 }}>Atendimentos — Últimos 30 dias</h2>
-            </div>
-            {renderLineChart()}
-          </div>
+          {/* SEÇÃO 3: RANKING DE SERVIÇOS E RANKING DE BARBEIROS */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+            {/* Ranking de Serviços Mais Vendidos */}
+            <div className="panel-card" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Scissors size={20} style={{ color: '#f97316' }} /> Serviços Mais Populares
+              </h2>
+              <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '1.25rem' }}>
+                Distribuição de preferência e receita por tipo de serviço
+              </p>
 
-          {/* Gráfico 2: Horários Mais Populares */}
-          <div className="panel-card mt-4" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-              <Clock size={20} style={{ color: 'var(--primary)' }} />
-              <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: 0 }}>Horários Mais Populares</h2>
+              {!data?.popularServices || data.popularServices.length === 0 ? (
+                <p style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>Nenhum serviço registrado.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {data.popularServices.map((service, idx) => (
+                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                        <span style={{ fontWeight: '600' }}>{service.name}</span>
+                        <span style={{ color: 'var(--muted)' }}>
+                          <strong>{service.count}x</strong> (R$ {service.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})
+                        </span>
+                      </div>
+                      <div style={{ width: '100%', height: '8px', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{ width: `${service.percentage}%`, height: '100%', backgroundColor: '#f97316', borderRadius: '4px' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            {renderBarChart()}
+
+            {/* Ranking de Desempenho da Equipe */}
+            <div className="panel-card" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Award size={20} style={{ color: 'var(--primary)' }} /> Ranking de Barbeiros
+              </h2>
+              <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '1.25rem' }}>
+                Classificação por faturamento gerado e total de cortes
+              </p>
+
+              {!data?.topProfessionals || data.topProfessionals.length === 0 ? (
+                <p style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>Nenhum profissional registrado.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                  {data.topProfessionals.map((prof, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justify: 'space-between',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '8px',
+                        backgroundColor: '#1a1a1a',
+                        border: '1px solid var(--card-border)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: idx === 0 ? '#EAB308' : idx === 1 ? '#94a3b8' : '#b45309', minWidth: '20px' }}>
+                          #{idx + 1}
+                        </span>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', backgroundColor: 'rgba(255,215,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {prof.photo_url ? (
+                            <img src={prof.photo_url} alt={prof.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <User size={20} style={{ color: 'var(--primary)' }} />
+                          )}
+                        </div>
+                        <div>
+                          <strong style={{ fontSize: '0.95rem', display: 'block' }}>{prof.name}</strong>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{prof.count} cortes realizados</span>
+                        </div>
+                      </div>
+
+                      <div style={{ textAlign: 'right' }}>
+                        <strong style={{ fontSize: '0.95rem', color: '#22c55e', display: 'block' }}>
+                          R$ {prof.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </strong>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </>
+        </div>
       )}
     </>
   );

@@ -27,6 +27,7 @@ export async function GET() {
       settingsObj.social_links = {
         instagram: '',
         facebook: '',
+        whatsapp: '',
         tiktok: '',
         youtube: '',
         website: '',
