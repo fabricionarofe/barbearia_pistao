@@ -10,6 +10,7 @@ export default function Home() {
   const [professionals, setProfessionals] = useState([]);
   const [siteSettings, setSiteSettings] = useState(null);
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [isLoadingSchedules, setIsLoadingSchedules] = useState(false);
 
   const [selectedServices, setSelectedServices] = useState([]);
   const [selectedProfessional, setSelectedProfessional] = useState(null);
@@ -27,51 +28,71 @@ export default function Home() {
   // Individual schedule for the selected professional
   const [profSchedules, setProfSchedules] = useState([]);
 
-  useEffect(() => {
-    // Buscar serviços, profissionais e configurações
-    Promise.all([
-      fetch('/api/services', { headers: { 'ngrok-skip-browser-warning': 'true' } }).then(res => res.json()),
-      fetch('/api/professionals', { headers: { 'ngrok-skip-browser-warning': 'true' } }).then(res => res.json()),
-      fetch('/api/settings', { headers: { 'ngrok-skip-browser-warning': 'true' } }).then(res => res.json())
-    ]).then(([servicesData, professionalsData, settingsData]) => {
+  const fetchInitialData = async () => {
+    setIsLoadingData(true);
+    try {
+      const timestamp = new Date().getTime();
+      const [servicesData, professionalsData, settingsData, statusData] = await Promise.all([
+        fetch(`/api/services?t=${timestamp}`, { cache: 'no-store', headers: { 'ngrok-skip-browser-warning': 'true' } }).then(res => res.json()),
+        fetch(`/api/professionals?t=${timestamp}`, { cache: 'no-store', headers: { 'ngrok-skip-browser-warning': 'true' } }).then(res => res.json()),
+        fetch(`/api/settings?t=${timestamp}`, { cache: 'no-store', headers: { 'ngrok-skip-browser-warning': 'true' } }).then(res => res.json()),
+        fetch(`/api/settings/status?t=${timestamp}`, { cache: 'no-store', headers: { 'ngrok-skip-browser-warning': 'true' } }).then(res => res.json())
+      ]);
+
       if (Array.isArray(servicesData)) setServices(servicesData);
       if (Array.isArray(professionalsData)) setProfessionals(professionalsData);
-      if (settingsData) setSiteSettings(settingsData);
-    }).catch(console.error)
-      .finally(() => setIsLoadingData(false));
+      if (settingsData) {
+        setSiteSettings(settingsData);
+        if (settingsData.site_theme?.primary_color) {
+          document.documentElement.style.setProperty('--primary', settingsData.site_theme.primary_color);
+        }
+      }
+      if (statusData) {
+        setStoreStatus(statusData.store_status || 'open');
+        setReturnTime(statusData.return_time || '');
+      }
+    } catch (err) {
+      console.error('Erro ao carregar dados:', err);
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
 
-    // Status da barbearia
-    fetch('/api/settings/status', { headers: { 'ngrok-skip-browser-warning': 'true' } })
-      .then(res => res.json())
-      .then(data => {
-        setStoreStatus(data.store_status || 'open');
-        setReturnTime(data.return_time || '');
-      })
-      .catch(() => setStoreStatus('open'));
+  useEffect(() => {
+    fetchInitialData();
 
     // Gerar próximas 7 datas
-    setAvailableDates(Array.from({ length: 7 }, (_, i) => {
+    const dates = Array.from({ length: 7 }, (_, i) => {
       const d = new Date();
       d.setDate(d.getDate() + i);
       return d.toISOString().split('T')[0];
-    }));
+    });
+    setAvailableDates(dates);
+    if (dates.length > 0) {
+      setSelectedDate(dates[0]);
+    }
   }, []);
 
-  // Buscar expedientes do profissional quando um for selecionado
+  // Buscar expedientes do profissional quando for selecionado
   useEffect(() => {
     if (selectedProfessional) {
-      fetch(`/api/schedules?professional_id=${selectedProfessional.id}`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
+      setIsLoadingSchedules(true);
+      const timestamp = new Date().getTime();
+      fetch(`/api/schedules?professional_id=${selectedProfessional.id}&t=${timestamp}`, { cache: 'no-store', headers: { 'ngrok-skip-browser-warning': 'true' } })
         .then(res => res.json())
         .then(data => {
-          if (Array.isArray(data)) setProfSchedules(data);
+          if (Array.isArray(data)) {
+            setProfSchedules(data);
+          }
         })
-        .catch(console.error);
+        .catch(console.error)
+        .finally(() => setIsLoadingSchedules(false));
     }
   }, [selectedProfessional]);
 
   // Filtrar profissionais que oferecem TODOS os serviços selecionados (ou se não houver restrição)
   const availableProfessionals = professionals.filter(prof => {
-    if (!prof.service_ids || prof.service_ids.length === 0) return true; // Atende todos
+    if (!prof.service_ids || prof.service_ids.length === 0) return true;
     return selectedServices.every(s => prof.service_ids.includes(s.id));
   });
 
@@ -96,16 +117,17 @@ export default function Home() {
 
   // Gerar horários dinamicamente baseado na data e Expediente Individual do Profissional
   useEffect(() => {
-    if (!selectedDate) return;
+    if (!selectedDate || !selectedProfessional) return;
 
     // Descobrir o dia da semana da data selecionada (0 = Domingo, 1 = Segunda... 6 = Sábado)
     const dateObj = new Date(selectedDate + 'T00:00:00');
     const dayOfWeek = dateObj.getDay();
 
-    // Obter expedição do profissional para esse dia
-    const daySchedule = profSchedules.find(s => s.day_of_week === dayOfWeek);
+    // Obter expediente do profissional para esse dia (comparação de número flexível)
+    const daySchedule = profSchedules.find(s => Number(s.day_of_week) === Number(dayOfWeek));
 
-    if (daySchedule && (daySchedule.is_active === 0 || daySchedule.is_active === false)) {
+    // Se o expediente estiver inativo/fechado para o profissional nesse dia
+    if (daySchedule && (Number(daySchedule.is_active) === 0 || daySchedule.is_active === false)) {
       setAvailableTimes([]);
       return;
     }
@@ -135,6 +157,14 @@ export default function Home() {
         baseMin = 0;
       }
 
+      if (['lunch_break', 'emergency'].includes(storeStatus) && returnTime) {
+        const [retHour, retMin] = returnTime.split(':').map(Number);
+        if (retHour > baseHour || (retHour === baseHour && retMin > baseMin)) {
+          baseHour = retHour;
+          baseMin = retMin;
+        }
+      }
+
       if (baseHour > minHour || (baseHour === minHour && baseMin > minMinute)) {
         minHour = baseHour;
         minMinute = baseMin;
@@ -156,16 +186,18 @@ export default function Home() {
     }
 
     setAvailableTimes(times);
-  }, [selectedDate, profSchedules]);
+  }, [selectedDate, selectedProfessional, profSchedules, storeStatus, returnTime]);
 
+  // Buscar agendamentos já ocupados para a data e profissional
   useEffect(() => {
     if (selectedDate && selectedProfessional) {
-      fetch(`/api/appointments?date=${selectedDate}`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
+      const timestamp = new Date().getTime();
+      fetch(`/api/appointments?date=${selectedDate}&t=${timestamp}`, { cache: 'no-store', headers: { 'ngrok-skip-browser-warning': 'true' } })
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
             const times = data
-              .filter(a => a.professional_id === selectedProfessional.id && a.status !== 'cancelled')
+              .filter(a => Number(a.professional_id) === Number(selectedProfessional.id) && a.status !== 'cancelled')
               .map(a => a.appointment_time);
             setOccupiedTimes(times);
           }
@@ -233,23 +265,15 @@ export default function Home() {
 
   const primaryColor = siteSettings?.site_theme?.primary_color || '#EAB308';
   const logoUrl = siteSettings?.site_theme?.logo_url || '/img/logo.jpeg';
-  const bannerUrl = siteSettings?.site_theme?.banner_url || '';
 
   return (
     <div className="client-container" style={{ '--primary': primaryColor }}>
-      {/* Header Banner if present */}
-      {bannerUrl && (
-        <div style={{ width: '100%', height: '160px', overflow: 'hidden' }}>
-          <img src={bannerUrl} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        </div>
-      )}
-
-      <header className="client-header" style={{ paddingTop: bannerUrl ? '1rem' : '2rem' }}>
+      <header className="client-header" style={{ paddingTop: '2rem' }}>
         <div className="logo-icon large" style={{ background: 'transparent', padding: 0, overflow: 'hidden' }}>
           <img src={logoUrl} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '12px' }} />
         </div>
         <div>
-          <h1>Barbearia do Pistão</h1>
+          <h1>Barbearia do Paulo</h1>
           <p>Agende seu horário de forma rápida e fácil.</p>
         </div>
       </header>
@@ -296,9 +320,9 @@ export default function Home() {
                     <div style={{ flex: 1 }}>
                       <div className="option-header">
                         <h3>{service.name}</h3>
-                        <span className="price">R$ {service.price.toFixed(2)}</span>
+                        <span className="price">R$ {Number(service.price).toFixed(2)}</span>
                       </div>
-                      <p className="description">{service.description}</p>
+                      {service.description && <p className="description">{service.description}</p>}
                       <div className="duration">
                         <Clock size={14} /> {service.duration_minutes} min
                       </div>
@@ -313,7 +337,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* STEP 2: Profissionais (Filtrados pelos Serviços Habilitados) */}
+        {/* STEP 2: Profissionais (Filtrados pelos Serviços Habilitados no Admin) */}
         {step === 2 && (
           <div className="step-container slide-in">
             <h2>2. Escolha o Profissional</h2>
@@ -363,7 +387,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* STEP 3: Data e Hora baseada no Expediente Individual */}
+        {/* STEP 3: Data e Hora baseada no Expediente Individual do Barbeiro Escolhido */}
         {step === 3 && (
           <div className="step-container slide-in">
             <h2>3. Escolha Data e Horário</h2>
@@ -391,49 +415,71 @@ export default function Home() {
               </div>
             </div>
 
-            {selectedDate && (
-              <div className="time-selector mt-4">
-                <p className="label">Horários Disponíveis com {selectedProfessional?.name}</p>
-                <div className="time-grid">
-                  {availableTimes.length === 0 ? (
-                    <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#ef4444', fontSize: '0.9rem', padding: '1rem', backgroundColor: 'rgba(239,68,68,0.1)', borderRadius: '8px' }}>
-                      O profissional não atende nesta data.
-                    </p>
-                  ) : availableTimes.map(time => {
-                    const dateObj = new Date(selectedDate + 'T00:00:00');
-                    const dayOfWeek = dateObj.getDay();
-                    const daySchedule = profSchedules.find(s => s.day_of_week === dayOfWeek);
-
-                    const hasBreak = daySchedule?.has_break === 1 || daySchedule?.has_break === true;
-                    const breakStart = daySchedule?.break_start || '12:00';
-                    const breakEnd = daySchedule?.break_end || '13:00';
-
-                    // Verificar se está no intervalo de almoço
-                    const isLunch = hasBreak && time >= breakStart && time < breakEnd;
-                    const isOccupied = occupiedTimes.includes(time);
-                    const isValid = !isLunch && !isOccupied;
-
-                    return (
-                      <div
-                        key={time}
-                        className={`time-card flex-center ${selectedTime === time ? 'selected' : ''} ${!isValid ? 'occupied' : ''}`}
-                        onClick={() => isValid && setSelectedTime(time)}
-                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: !isValid ? 0.6 : 1, padding: '0.5rem', cursor: isValid ? 'pointer' : 'not-allowed' }}
-                      >
-                        <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{time}</span>
-                        {isLunch ? (
-                          <span style={{ fontSize: '0.65rem', color: '#eab308', textTransform: 'uppercase', marginTop: '2px', letterSpacing: '0.05em' }}>Almoço</span>
-                        ) : isOccupied ? (
-                          <span style={{ fontSize: '0.65rem', color: '#ef4444', textTransform: 'uppercase', marginTop: '2px', letterSpacing: '0.05em' }}>Ocupado</span>
-                        ) : null}
-                      </div>
-                    );
-                  })}
-                </div>
+            {selectedDate && storeStatus === 'closed' && (
+              <div className="mt-4" style={{ textAlign: 'center', padding: '1rem', backgroundColor: 'var(--card-bg)', border: '1px solid #ef4444', borderRadius: '12px' }}>
+                <p style={{ color: '#ef4444', fontWeight: 'bold' }}>A barbearia está fechada no momento.</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: '0.5rem' }}>Por favor, retorne mais tarde para realizar seu agendamento.</p>
               </div>
             )}
 
-            <button className="btn-primary w-full mt-4" onClick={handleNextStep} style={{ opacity: (selectedDate && selectedTime) ? 1 : 0.5 }} disabled={!selectedDate || !selectedTime}>
+            {selectedDate && storeStatus === 'lunch_break' && selectedDate === new Date().toISOString().split('T')[0] && (
+              <div className="mt-4" style={{ textAlign: 'center', padding: '1rem', backgroundColor: 'var(--card-bg)', border: '1px solid #eab308', borderRadius: '12px' }}>
+                <p style={{ color: '#eab308', fontWeight: 'bold' }}>Estamos fechados para o almoço no momento.</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: '0.5rem' }}>Mas você já pode agendar para os horários disponíveis mais tarde!</p>
+              </div>
+            )}
+
+            {selectedDate && storeStatus !== 'closed' && (
+              <div className="time-selector mt-4">
+                <p className="label">Horários Disponíveis com {selectedProfessional?.name}</p>
+
+                {isLoadingSchedules ? (
+                  <div className="flex-center" style={{ padding: '2rem 0', flexDirection: 'column', color: 'var(--muted)' }}>
+                    <div style={{ animation: 'spin 1s linear infinite', border: '2px solid var(--primary)', borderTopColor: 'transparent', borderRadius: '50%', width: '24px', height: '24px' }} />
+                    <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>Carregando horários do expediente...</p>
+                  </div>
+                ) : (
+                  <div className="time-grid">
+                    {availableTimes.length === 0 ? (
+                      <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#ef4444', fontSize: '0.9rem', padding: '1rem', backgroundColor: 'rgba(239,68,68,0.1)', borderRadius: '8px' }}>
+                        O profissional não atende nesta data.
+                      </p>
+                    ) : availableTimes.map(time => {
+                      const dateObj = new Date(selectedDate + 'T00:00:00');
+                      const dayOfWeek = dateObj.getDay();
+                      const daySchedule = profSchedules.find(s => Number(s.day_of_week) === Number(dayOfWeek));
+
+                      const hasBreak = daySchedule && (Number(daySchedule.has_break) === 1 || daySchedule.has_break === true);
+                      const breakStart = daySchedule?.break_start || '12:00';
+                      const breakEnd = daySchedule?.break_end || '13:00';
+
+                      // Verificar se o horário fica dentro do intervalo de almoço do barbeiro
+                      const isLunch = hasBreak && time >= breakStart && time < breakEnd;
+                      const isOccupied = occupiedTimes.includes(time);
+                      const isValid = !isLunch && !isOccupied;
+
+                      return (
+                        <div
+                          key={time}
+                          className={`time-card flex-center ${selectedTime === time ? 'selected' : ''} ${!isValid ? 'occupied' : ''}`}
+                          onClick={() => isValid && setSelectedTime(time)}
+                          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: !isValid ? 0.6 : 1, padding: '0.5rem', cursor: isValid ? 'pointer' : 'not-allowed' }}
+                        >
+                          <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{time}</span>
+                          {isLunch ? (
+                            <span style={{ fontSize: '0.65rem', color: '#eab308', textTransform: 'uppercase', marginTop: '2px', letterSpacing: '0.05em' }}>Almoço</span>
+                          ) : isOccupied ? (
+                            <span style={{ fontSize: '0.65rem', color: '#ef4444', textTransform: 'uppercase', marginTop: '2px', letterSpacing: '0.05em' }}>Ocupado</span>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <button className="btn-primary w-full mt-4" onClick={handleNextStep} style={{ opacity: (selectedDate && selectedTime) ? 1 : 0.5 }} disabled={!selectedDate || !selectedTime || storeStatus === 'closed'}>
               Continuar <ChevronRight size={20} />
             </button>
           </div>
@@ -514,7 +560,7 @@ export default function Home() {
               <a href={siteSettings.social_links.website} target="_blank" rel="noreferrer" style={{ color: 'var(--muted)' }}><Globe size={20} /></a>
             )}
           </div>
-          <p style={{ fontSize: '0.8rem', color: 'var(--muted)', margin: 0 }}>© Barbearia do Pistão - Todos os direitos reservados</p>
+          <p style={{ fontSize: '0.8rem', color: 'var(--muted)', margin: 0 }}>© Barbearia do Paulo - Todos os direitos reservados</p>
         </footer>
       )}
     </div>

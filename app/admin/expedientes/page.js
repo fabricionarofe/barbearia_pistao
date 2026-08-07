@@ -59,7 +59,7 @@ export default function ExpedientesPage() {
   const updateDaySchedule = (dayOfWeek, field, value) => {
     setSchedules(prev =>
       prev.map(item => {
-        if (item.day_of_week === dayOfWeek) {
+        if (Number(item.day_of_week) === Number(dayOfWeek)) {
           return { ...item, [field]: value };
         }
         return item;
@@ -96,7 +96,7 @@ export default function ExpedientesPage() {
   };
 
   const getScheduleForDay = (dayOfWeek) => {
-    return schedules.find(s => s.day_of_week === dayOfWeek) || {
+    return schedules.find(s => Number(s.day_of_week) === Number(dayOfWeek)) || {
       day_of_week: dayOfWeek,
       is_active: dayOfWeek === 0 ? 0 : 1,
       start_time: '09:00',
