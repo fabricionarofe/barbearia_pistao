@@ -1,12 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, User, Scissors, Check, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, User, Scissors, Check, X, CheckCircle, AlertCircle, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AgendamentosPage() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const handleWhatsAppClick = (appt) => {
+    let phone = appt.client_phone.replace(/\D/g, '');
+    if (phone && !phone.startsWith('55')) {
+      phone = '55' + phone;
+    }
+    const formattedDate = appt.appointment_date.split('-').reverse().join('/');
+    const message = `Seu agendamento está confirmado para o dia ${formattedDate} às ${appt.appointment_time}, aguardamos você!`;
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+  };
 
   const fetchAppointments = () => {
     fetch('/api/appointments', { headers: { 'ngrok-skip-browser-warning': 'true' } })
@@ -95,6 +106,9 @@ export default function AgendamentosPage() {
                   </div>
                 </div>
                 <div className="appointment-actions">
+                  <button onClick={() => handleWhatsAppClick(appt)} className="btn-action" title="Enviar WhatsApp" style={{ backgroundColor: '#25D366', color: 'white', borderColor: '#25D366' }}>
+                    <MessageCircle size={16} /> <span className="action-text">WhatsApp</span>
+                  </button>
                   {appt.status === 'pending' && (
                     <button onClick={() => handleUpdateStatus(appt.id, 'confirmed')} className="btn-action btn-confirm" title="Confirmar Agendamento">
                       <CheckCircle size={16} /> Confirmar
