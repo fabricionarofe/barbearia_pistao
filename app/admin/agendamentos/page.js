@@ -12,7 +12,7 @@ export default function AgendamentosPage() {
     let phone = appt.client_phone.replace(/\D/g, '');
     
     if (phone.length <= 9) {
-      phone = '61' + phone;
+      phone = '91' + phone;
     }
     
     if (phone && !phone.startsWith('55')) {
