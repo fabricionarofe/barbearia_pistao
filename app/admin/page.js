@@ -110,7 +110,7 @@ export default async function AdminDashboard() {
 
       {/* Summary Cards */}
       <div className="summary-grid">
-        <div className="summary-card">
+        <Link href="/admin/agendamentos" className="summary-card" style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
           <div className="summary-info">
             <h3>Agendamentos Hoje</h3>
             <p>{appointmentsToday}</p>
@@ -118,9 +118,9 @@ export default async function AdminDashboard() {
           <div className="summary-icon">
             <Calendar size={24} />
           </div>
-        </div>
+        </Link>
 
-        <div className="summary-card">
+        <Link href="/admin/clientes" className="summary-card" style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
           <div className="summary-info">
             <h3>Clientes Ativos</h3>
             <p>{clientsCount}</p>
@@ -128,9 +128,9 @@ export default async function AdminDashboard() {
           <div className="summary-icon">
             <Users size={24} />
           </div>
-        </div>
+        </Link>
 
-        <div className="summary-card">
+        <Link href="/admin/profissionais" className="summary-card" style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
           <div className="summary-info">
             <h3>Profissionais</h3>
             <p>{professionalsCount}</p>
@@ -138,9 +138,9 @@ export default async function AdminDashboard() {
           <div className="summary-icon">
             <Scissors size={24} />
           </div>
-        </div>
+        </Link>
 
-        <div className="summary-card">
+        <Link href="/admin/servicos" className="summary-card" style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}>
           <div className="summary-info">
             <h3>Serviços</h3>
             <p>{servicesCount}</p>
@@ -148,7 +148,7 @@ export default async function AdminDashboard() {
           <div className="summary-icon">
             <Package size={24} />
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Atalhos Rápidos Grid (Igual ao Vídeo) */}
