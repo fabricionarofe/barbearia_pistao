@@ -10,9 +10,15 @@ export default function AgendamentosPage() {
 
   const handleWhatsAppClick = (appt) => {
     let phone = appt.client_phone.replace(/\D/g, '');
+    
+    if (phone.length <= 9) {
+      phone = '61' + phone;
+    }
+    
     if (phone && !phone.startsWith('55')) {
       phone = '55' + phone;
     }
+    
     const formattedDate = appt.appointment_date.split('-').reverse().join('/');
     const message = `Seu agendamento está confirmado para o dia ${formattedDate} às ${appt.appointment_time}, aguardamos você!`;
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;

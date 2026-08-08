@@ -2,7 +2,6 @@ import { Calendar, Users, Scissors, Package, Clock, DollarSign, BarChart2, QrCod
 import Link from 'next/link';
 import { openDb } from '../../lib/db';
 
-import StoreStatusToggle from './components/StoreStatusToggle';
 import DashboardChartsAndShare from './components/DashboardChartsAndShare';
 
 export const metadata = {
@@ -14,18 +13,6 @@ export const dynamic = 'force-dynamic';
 export default async function AdminDashboard() {
   const db = await openDb();
   const now = new Date();
-
-  // Obter status da loja
-  let statusRow = await db.get("SELECT value FROM settings WHERE key = 'store_status'");
-  let timeRow = await db.get("SELECT value FROM settings WHERE key = 'return_time'");
-  if (!statusRow) {
-    let oldStatus = await db.get("SELECT value FROM settings WHERE key = 'is_open'");
-    const initialStatus = (oldStatus && oldStatus.value === 'false') ? 'closed' : 'open';
-    await db.run("INSERT INTO settings (key, value) VALUES ('store_status', ?)", [initialStatus]);
-    statusRow = { value: initialStatus };
-  }
-  const initialStatus = statusRow.value;
-  const initialReturnTime = timeRow ? timeRow.value : '';
 
   // Quantidades básicas
   const today = new Date().toISOString().split('T')[0];
@@ -120,8 +107,6 @@ export default async function AdminDashboard() {
         <h1>Dashboard</h1>
         <p>Visão geral da sua barbearia</p>
       </div>
-
-      <StoreStatusToggle initialStatus={initialStatus} initialReturnTime={initialReturnTime} />
 
       {/* Summary Cards */}
       <div className="summary-grid">
